@@ -20,10 +20,10 @@ const PortfolioPage = () => {
   ];
 
   const stats = [
-    { label: 'Total Value', value: '$20.46T', change: '+0.02% (24h)', color: 'bg-orange-400', icon: <Award size={18}/> },
-    { label: 'Total Cost', value: '$34.16B', change: '', color: 'bg-red-500', icon: <Activity size={18}/> },
-    { label: 'Total Gain/Loss', value: '$1,610.00', change: '+2 this week', color: 'bg-green-500', icon: <TrendingUp size={18}/> },
-    { label: 'Return', value: '+4.48%', change: '', color: 'bg-blue-600', icon: <Percent size={18}/> },
+    { label: 'Total Value', value: '$20.46T', change: '+0.02% (24h)', color: 'bg-orange-400', icon: <Award size={18} /> },
+    { label: 'Total Cost', value: '$34.16B', change: '', color: 'bg-red-500', icon: <Activity size={18} /> },
+    { label: 'Total Gain/Loss', value: '$1,610.00', change: '+2 this week', color: 'bg-green-500', icon: <TrendingUp size={18} /> },
+    { label: 'Return', value: '+4.48%', change: '', color: 'bg-blue-600', icon: <Percent size={18} /> },
   ];
 
   return (
@@ -106,8 +106,8 @@ const PortfolioPage = () => {
             ]}>
               <defs>
                 <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2}/>
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
