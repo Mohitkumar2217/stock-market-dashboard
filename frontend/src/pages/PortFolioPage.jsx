@@ -1,126 +1,240 @@
-import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, AreaChart, Area, CartesianGrid } from 'recharts';
-import { TrendingUp, Award, Activity, Percent } from 'lucide-react';
+import React, { useState } from 'react';
+import { convertCurrency, formatCurrency, formatLargeNumber } from '../utils/currency';
+import { TrendingUp, TrendingDown, Wallet, DollarSign, PieChart } from 'lucide-react';
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
-const PortfolioPage = () => {
-  // Data for Portfolio Allocation (Pie Chart)
-  const allocationData = [
-    { name: 'BTC', value: 50, color: '#6366F1' },
-    { name: 'ETH', value: 25, color: '#A855F7' },
-    { name: 'SOL', value: 15, color: '#EF4444' },
-    { name: 'AAPL', value: 10, color: '#F59E0B' },
-  ];
+const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444'];
 
-  // Data for Asset Distribution (Horizontal Bar)
-  const distributionData = [
-    { name: 'BTC', percentage: 100, color: '#6366F1' },
-    { name: 'ETH', percentage: 71.3, color: '#A855F7' },
-    { name: 'BNB', percentage: 4.8, color: '#F59E0B' },
-    { name: 'SOL', percentage: 3.2, color: '#EF4444' },
-  ];
+export function PortfolioPage({ currency }) {
+  // Removed TypeScript Holding interface and type annotation
+  const [holdings] = useState([
+    {
+      id: 'btc',
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      amount: 0.5,
+      avgPrice: 43000,
+      currentPrice: 45000,
+      type: 'crypto',
+    },
+    {
+      id: 'eth',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      amount: 5,
+      avgPrice: 2300,
+      currentPrice: 2400,
+      type: 'crypto',
+    },
+    {
+      id: 'aapl',
+      symbol: 'AAPL',
+      name: 'Apple Inc.',
+      amount: 10,
+      avgPrice: 175,
+      currentPrice: 182,
+      type: 'stock',
+    },
+    {
+      id: 'tsla',
+      symbol: 'TSLA',
+      name: 'Tesla',
+      amount: 5,
+      avgPrice: 240,
+      currentPrice: 248,
+      type: 'stock',
+    },
+  ]);
 
-  const stats = [
-    { label: 'Total Value', value: '$20.46T', change: '+0.02% (24h)', color: 'bg-orange-400', icon: <Award size={18} /> },
-    { label: 'Total Cost', value: '$34.16B', change: '', color: 'bg-red-500', icon: <Activity size={18} /> },
-    { label: 'Total Gain/Loss', value: '$1,610.00', change: '+2 this week', color: 'bg-green-500', icon: <TrendingUp size={18} /> },
-    { label: 'Return', value: '+4.48%', change: '', color: 'bg-blue-600', icon: <Percent size={18} /> },
-  ];
+  // Calculate portfolio stats
+  const totalValue = holdings.reduce((sum, h) => sum + h.amount * h.currentPrice, 0);
+  const totalCost = holdings.reduce((sum, h) => sum + h.amount * h.avgPrice, 0);
+  const totalGain = totalValue - totalCost;
+  const totalGainPercent = (totalGain / totalCost) * 100;
+
+  // Prepare pie chart data
+  const pieData = holdings.map(h => ({
+    name: h.symbol,
+    value: h.amount * h.currentPrice,
+  }));
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <header>
-        <h2 className="text-2xl font-bold text-gray-800">Portfolio</h2>
-        <p className="text-sm text-gray-500">Monitor your investments and performance</p>
-      </header>
-
-      {/* 1. Stat Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {stats.map((s, i) => (
-          <div key={i} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between relative overflow-hidden">
-            <div className="z-10">
-              <p className="text-[10px] text-gray-400 font-bold uppercase">{s.label}</p>
-              <h3 className="text-xl font-extrabold mt-1 text-gray-800">{s.value}</h3>
-              <p className="text-[10px] text-green-500 font-bold mt-1">{s.change}</p>
-            </div>
-            <div className={`${s.color} w-9 h-9 rounded-lg flex items-center justify-center text-white shadow-lg`}>
-              {s.icon}
-            </div>
-            <div className={`absolute bottom-0 left-0 w-full h-1 ${s.color} opacity-20`} />
-          </div>
-        ))}
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold mb-2">Portfolio</h1>
+        <p className="text-gray-500">Monitor your investments and performance</p>
       </div>
 
-      {/* 2. Top Charts Grid */}
+      {/* Portfolio Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-gray-500 text-sm font-medium">Total Value</p>
+            <Wallet className="w-5 h-5 text-blue-500" />
+          </div>
+          <h3 className="text-2xl font-bold">
+            {formatLargeNumber(convertCurrency(totalValue, 'USD', currency), currency)}
+          </h3>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-gray-500 text-sm font-medium">Total Cost</p>
+            <DollarSign className="w-5 h-5 text-gray-400" />
+          </div>
+          <h3 className="text-2xl font-bold">
+            {formatLargeNumber(convertCurrency(totalCost, 'USD', currency), currency)}
+          </h3>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-gray-500 text-sm font-medium">Total Gain/Loss</p>
+            {totalGain >= 0 ? (
+              <TrendingUp className="w-5 h-5 text-green-500" />
+            ) : (
+              <TrendingDown className="w-5 h-5 text-red-500" />
+            )}
+          </div>
+          <h3 className={`text-2xl font-bold ${totalGain >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            {formatCurrency(Math.abs(convertCurrency(totalGain, 'USD', currency)), currency)}
+          </h3>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-gray-500 text-sm font-medium">Return</p>
+            <PieChart className="w-5 h-5 text-purple-500" />
+          </div>
+          <h3 className={`text-2xl font-bold ${totalGainPercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            {totalGainPercent >= 0 ? '+' : ''}{totalGainPercent.toFixed(2)}%
+          </h3>
+        </div>
+      </div>
+
+      {/* Portfolio Allocation Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Portfolio Allocation Pie Chart */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-80">
-          <h4 className="text-[10px] font-bold text-gray-400 text-center uppercase mb-4">Portfolio Allocation</h4>
-          <div className="h-full">
-            <ResponsiveContainer width="100%" height="80%">
-              <PieChart>
-                <Pie data={allocationData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                  {allocationData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900">Portfolio Allocation</h3>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsPieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
-              </PieChart>
+                <Tooltip
+                  // Removed TypeScript number annotation
+                  formatter={(value) =>
+                    formatCurrency(convertCurrency(value, 'USD', currency), currency)
+                  }
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+              </RechartsPieChart>
             </ResponsiveContainer>
-            <div className="flex justify-center gap-4 text-[10px] font-bold text-gray-500 uppercase">
-              {allocationData.map(d => <span key={d.name}>{d.name} {d.value}%</span>)}
-            </div>
           </div>
         </div>
 
-        {/* Asset Distribution Horizontal Bar Chart */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-80">
-          <h4 className="text-[10px] font-bold text-gray-400 text-center uppercase mb-4">Asset Distribution</h4>
-          <div className="h-full">
-            <ResponsiveContainer width="100%" height="90%">
-              <BarChart layout="vertical" data={distributionData} margin={{ left: 40, right: 40 }}>
-                <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
-                <Tooltip cursor={{ fill: 'transparent' }} />
-                <Bar dataKey="percentage" radius={[0, 4, 4, 0]} barSize={8}>
-                  {distributionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900">Asset Distribution</h3>
+          <div className="space-y-5">
+            {holdings.map((holding, index) => {
+              const value = holding.amount * holding.currentPrice;
+              const percentage = (value / totalValue) * 100;
+              return (
+                <div key={holding.id}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-bold text-gray-700">{holding.symbol}</span>
+                    <span className="text-sm font-medium text-gray-500">{percentage.toFixed(1)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${percentage}%`,
+                        backgroundColor: COLORS[index % COLORS.length],
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* 3. My Holdings Area Chart */}
-      <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-        <h3 className="text-sm font-bold text-gray-700 mb-6">My Holdings</h3>
-        <div className="h-72">
-          <h4 className="text-center text-[10px] font-bold text-gray-400 uppercase mb-4">Portfolio Asset Value Over Time</h4>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={[
-              { name: 'Mon', value: 300 }, { name: 'Tue', value: 450 },
-              { name: 'Wed', value: 380 }, { name: 'Thu', value: 520 },
-              { name: 'Fri', value: 480 }, { name: 'Sat', value: 600 },
-              { name: 'Sun', value: 550 }
-            ]}>
-              <defs>
-                <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
-              <YAxis hide />
-              <Tooltip />
-              <Area type="monotone" dataKey="value" stroke="#ef4444" strokeWidth={2} fill="url(#colorVal)" />
-            </AreaChart>
-          </ResponsiveContainer>
+      {/* Holdings Table */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50">
+          <h3 className="text-lg font-semibold text-gray-900">Asset Holdings</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-gray-50 text-gray-500 border-b border-gray-200">
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-left">Asset</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Amount</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Avg Price</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Current Price</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Value</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Gain/Loss</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {holdings.map(holding => {
+                const hValue = holding.amount * holding.currentPrice;
+                const hCost = holding.amount * holding.avgPrice;
+                const hGain = hValue - hCost;
+                const hGainPercent = (hGain / hCost) * 100;
+
+                return (
+                  <tr key={holding.id} className="hover:bg-gray-50/80 transition-colors">
+                    <td className="px-6 py-4">
+                      <div>
+                        <div className="text-sm font-bold text-gray-900">{holding.symbol}</div>
+                        <div className="text-xs text-gray-500">{holding.name}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-medium text-gray-700">
+                      {holding.amount}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm text-gray-600">
+                      {formatCurrency(convertCurrency(holding.avgPrice, 'USD', currency), currency)}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm text-gray-600 font-medium">
+                      {formatCurrency(convertCurrency(holding.currentPrice, 'USD', currency), currency)}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
+                      {formatCurrency(convertCurrency(hValue, 'USD', currency), currency)}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className={hGain >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        <div className="text-sm font-bold">
+                          {hGain >= 0 ? '+' : ''}
+                          {formatCurrency(Math.abs(convertCurrency(hGain, 'USD', currency)), currency)}
+                        </div>
+                        <div className="text-xs font-medium">
+                          {hGainPercent >= 0 ? '+' : ''}{hGainPercent.toFixed(2)}%
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   );
-};
-
-export default PortfolioPage;
+}
